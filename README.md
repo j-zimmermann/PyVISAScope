@@ -12,3 +12,8 @@ Currently, this script works for a Tektronix TDS2014B.
 * [pyVISA](https://pyvisa.readthedocs.io/en/master/)
 * [pyVISA-py](https://pyvisa-py.readthedocs.io/en/latest/)
 * [pyUSB](http://pyusb.github.io/pyusb/)
+
+# Additional requirements to run examples
+
+* [multitimer](https://pypi.org/project/multitimer/)
+* [pyYAML](https://pyyaml.org/)
