@@ -17,3 +17,11 @@ Currently, this script works for a Tektronix TDS2014B.
 
 * [multitimer](https://pypi.org/project/multitimer/)
 * [pyYAML](https://pyyaml.org/)
+
+
+# Troubleshooting for linux users
+Give your device all rights you need to access it:
+http://ask.xmodulo.com/change-usb-device-permission-linux.html
+
+This solves this issue:
+https://github.com/pyvisa/pyvisa/issues/212
