@@ -18,8 +18,10 @@
 """
 
 
-from pyvisascope import logger, scope, convUnicodeToAscii
+from .pyvisascope import scope, convUnicodeToAscii
+import logging
 
+logger = logging.getLogger('pyvisa')
 
 class WaveformFormat(object):
         def __init__(self, preambleString):

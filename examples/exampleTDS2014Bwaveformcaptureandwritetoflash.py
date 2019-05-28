@@ -1,5 +1,5 @@
 import visa
-import tekVisa
+import pyvisascope
 import multitimer
 import time
 import yaml
@@ -13,7 +13,7 @@ logger.addHandler(log2file)
 
 def main():
         # enter here the ID of your device. On windows, VISA you can easily find it in the VISA interface.
-        Device = tekVisa.scope('USB::0x0699::0x0368::C100942::INSTR')
+        Device = pyvisascope.TDS2000('USB::0x0699::0x0368::C100942::INSTR')
         Device.myScope.timeout = None
         # set a timer that records every minute for in total 4 times
         timer = multitimer.MultiTimer(interval=60, function=measure, kwargs={'myDevice': Device}, count=4, runonstart=True)

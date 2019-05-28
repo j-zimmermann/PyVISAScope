@@ -17,7 +17,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from pyvisascope import logger, scope, convUnicodeToAscii
+from .pyvisascope import scope, convUnicodeToAscii
+import logging
+logger = logging.getLogger('pyvisa')
 
 
 class WaveformFormat(object):
