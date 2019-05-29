@@ -26,29 +26,22 @@ logger = logging.getLogger('pyvisa')
 class WaveformFormat(object):
         def __init__(self, preambleString):
                 preambleString = preambleString.replace('\n', '')
-                tmp = preambleString.split(';')
-                if len(tmp) == 5:
+                tmp = preambleString.split(',')
+                if len(tmp) == 5: # TODO
                         self.active = False
                         return
                 self.active = True
                 self.dictionary = {}
-                for i in range(len(tmp)):
-                        if tmp[i] == '"s"':
-                                self.dictionary['Time multiplier'] = float(tmp[i - 3])
-                                logger.debug('Set time multiplier: {}'.format(self.dictionary['Time multiplier']))
-                        elif tmp[i] == '"Volts"':
-                                self.dictionary['Voltage multiplier'] = float(tmp[i - 3])
-                                logger.debug('Set voltage multiplier: {}'.format(self.dictionary['Voltage multiplier']))
-                                self.dictionary['Voltage Offset'] = float(tmp[i - 1])
-                                logger.debug('Set Voltage Offset: {}'.format(self.dictionary['Voltage Offset']))
-                        elif 'Ch' in tmp[i]:
-                                self.channel_info = tmp[i].split(',')
-                                logger.debug('Channel info:')
-                                logger.debug(self.channel_info)
-                                self.dictionary['Voltage Div'] = float(self.channel_info[2].replace('V/div', '').rstrip())
-                                logger.debug('Set Voltage Div to {}'.format(self.dictionary['Voltage Div']))
-                                self.dictionary['Time Div'] = float(self.channel_info[3].replace('s/div', '').rstrip())
-                                logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
+                self.dictionary['Time multiplier'] = float(tmp[4])
+                logger.debug('Set time multiplier: {}'.format(self.dictionary['Time multiplier']))
+                self.dictionary['Voltage multiplier'] = float(tmp[7])
+                logger.debug('Set voltage multiplier: {}'.format(self.dictionary['Voltage multiplier']))
+                self.dictionary['Voltage Offset'] = float(tmp[8]) + float(tmp[9])
+                logger.debug('Set Voltage Offset: {}'.format(self.dictionary['Voltage Offset']))
+                self.dictionary['Voltage Div'] = float(tmp[7])
+                logger.debug('Set Voltage Div to {}'.format(self.dictionary['Voltage Div']))
+                self.dictionary['Time Div'] = float(tmp[4])
+                logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
 
 
 class DS1000Z(scope):
@@ -57,29 +50,41 @@ class DS1000Z(scope):
 
         def set_channel(self, channel):
                 if self.checkChannel(channel):
-                        self.myScope.write('DATa:SOUrce ' + channel)
+                        self.myScope.write('WAV:SOUR ' + channel)
                         logger.info('Set channel {}'.format(channel))
                 else:
-                        logger.error('Error format, ex: set_channel(\'CH1\')')
+                        logger.error('Error format, ex: set_channel(\'CHAN1\')')
+
+        def checkChannel(self, channel):
+                """ template for 4 channel oscilloscopes """
+                answer = False
+                if channel == 'CHAN1' or channel == 'CHAN2' or channel == 'CHAN3' or channel == 'CHAN4':
+                        answer = True
+                if answer is False:
+                        logger.error('Choose one of the four channels, e.g. CHAN1')
+                        return answer
+                return answer
 
         def get_channel(self):
-                ch = convUnicodeToAscii(self.myScope.query(':DAT:SOU?')).rstrip()
+                ch = convUnicodeToAscii(self.myScope.query(':WAV:SOUR?')).rstrip()
                 logger.info('Current capture channel: {:}'.format(ch))
                 return(ch)
 
         def acquire(self, start):
                 if start == 'ON':
-                        self.myScope.write(':ACQ:STATE ON')
+                        self.myScope.write(':RUN:')
                 elif start == 'OFF':
-                        self.myScope.write(':ACQ:STATE OFF')
+                        self.myScope.write(':STOP:')
                 else:
-                        logger.error('Error format, ex: acquire(\'ON/OFF\')')
+                        logger.error('Error format, ex: acquire(\'RUN/STOP\')')
 
+
+        """
         def get_measurement(self, channel, parameter):
-                """
+                '''
                 possible parameters are:
                 CRM, CURSORRM, DEL, FALL, FREQ, MAXI, MEAN, MINI, NONE, NWI, PDU, PERI, PHA, PK2PK, PWI, RIS
-                """
+                '''
                 self.myScope.write(':MEASU:IMMED:SOU ' + channel)
                 self.myScope.write(':MEASU:IMMED:TYP ' + parameter)
                 result = self.myScope.query(':MEASU:IMMED:VAL?')
@@ -111,7 +116,8 @@ class DS1000Z(scope):
             self.set_counter()
             self.DIR = 'A:\\' + DIR
             logger.debug('CWD: ' + self.myScope.query('FILESYSTEM:CWD?'))
-
+            raise Exception('not implemented')
+        
         def set_counter(self):
             files = self.myScope.query(':FILESYSTEM:DIR?').replace('"', '').replace('\n', '').split(',')
             logger.debug(files)
@@ -121,7 +127,9 @@ class DS1000Z(scope):
             if len(files) > 0:
                 self.counter = max(files) + 1
                 logger.info('Start to write from index {}'.format(self.counter))
-
+            raise Exception('not implemented')
+            
+                
         def save_all(self, channels, DIR='MEAS'):
             if len(DIR) > 8:
                 raise Exception('Please check naming convention of the device. Not more than 8 characters are possible!')
@@ -131,6 +139,7 @@ class DS1000Z(scope):
             self._save_setup()
             self._save_wave(channels)
             self.counter += 1
+            raise Exception('not implemented')
 
         def _save_setup(self):
             logger.info('Saving setup')
@@ -143,6 +152,8 @@ class DS1000Z(scope):
                     self.filestr = self.DIR + '\\' + channel + "{0:05d}".format(self.counter)
                     self.myScope.write(':SAVE:WAVEFORM ' + channel + ', "' + self.filestr + '.CSV"')
 
+        """
+
         def get_waveform(self, channels):
                 # stop acquisition
                 self.acquire('OFF')
@@ -150,11 +161,15 @@ class DS1000Z(scope):
                 for channel in channels:
                         if self.checkChannel(channel):
                                 self.set_channel(channel)
-                                preamble = WaveformFormat(self.myScope.query(':WFMP?'))
+                                preamble = WaveformFormat(self.myScope.query(':WAV:PRE?'))
                                 if preamble.active is False:
                                         logger.warning('Channel {} is not active'.format(channel))
                                         continue
-                                wave = self.myScope.query_binary_values(':CURV?', datatype='B')
+                                # set reading mode to normal
+                                self.myScope.write(':WAV:MODE NORM')
+                                # set format to binary
+                                self.myScope.write(':WAV:FORM BYTE')
+                                wave = self.myScope.query_binary_values(':WAV:DATA?', datatype='B')
                                 voltage = [(i - preamble.dictionary['Voltage Offset']) * preamble.dictionary['Voltage multiplier']
                                            for i in wave]
                                 if 'time' not in waveform:
@@ -166,6 +181,7 @@ class DS1000Z(scope):
                 self.acquire('ON')
                 return waveform
 
+        """
         def get_channel_position(self, channel):
                 if self.checkChannel(channel):
                         self.set_channel(channel)
@@ -194,3 +210,4 @@ class DS1000Z(scope):
                         self.myScope.write(channel + ':SCA ' + str(v_div))
                 else:
                         logger.error('Error format, ex: set_volt_div(\'CH1\', 0.5)')
+        """
