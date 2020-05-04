@@ -13,12 +13,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-"""
 from .pyvisascope import scope, convUnicodeToAscii
 import logging
 logger = logging.getLogger('pyvisa')
 
 
+"""
 class WaveformFormat(object):
         def __init__(self, preambleString):
                 preambleString = preambleString.replace('\n', '')
@@ -47,6 +47,7 @@ class WaveformFormat(object):
                                 logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
 
 
+"""
 class SIGLENT(scope):
         def __init__(self, resource):
                 super().__init__(resource)
@@ -191,4 +192,3 @@ class SIGLENT(scope):
                 else:
                         logger.error('Error format, ex: set_volt_div(\'CH1\', 0.5)')
 
-"""
