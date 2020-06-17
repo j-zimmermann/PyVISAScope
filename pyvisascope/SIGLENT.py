@@ -13,12 +13,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from .pyvisascope import scope, convUnicodeToAscii
 import logging
 logger = logging.getLogger('pyvisa')
 
 
-"""
 class WaveformFormat(object):
         def __init__(self, preambleString):
                 preambleString = preambleString.replace('\n', '')
@@ -47,7 +47,6 @@ class WaveformFormat(object):
                                 logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
 
 
-"""
 class SIGLENT(scope):
         def __init__(self, resource):
                 super().__init__(resource)
@@ -66,11 +65,112 @@ class SIGLENT(scope):
 
         def acquire(self, start):
                 if start == 'ON':
-                        self.myScope.write(':ACQ:STATE ON')
+                        self.myScope.write(':ARM')
                 elif start == 'OFF':
-                        self.myScope.write(':ACQ:STATE OFF')
+                        self.myScope.write(':STOP')
                 else:
                         logger.error('Error format, ex: acquire(\'ON/OFF\')')
+
+        def get_state(self):
+                print(self.myScope.query(':INR?'))
+                
+        def get_aqw_status(self):
+                print(self.myScope.query(':SAST?'))
+                
+        def set_time_div(self, time):
+                self.myScope.write('TIME_DIV ' + time)
+                print(self.myScope.query('TIME_DIV?'))
+
+        def cal(self):
+                self.myScope.write('*CAL?')
+
+        def get_waveform(self):
+                self.myScope.write("chdr off")
+                vdiv = self.myScope.query("c1:vdiv?")
+                ofst = self.myScope.query("c1:ofst?")
+                tdiv = self.myScope.query("tdiv?")
+                sara = self.myScope.query("sara?") #sara - samplerate
+                sara = float(sara)
+                print('samplerate = ', sara,' Hz')
+                print(type(sara))
+                self.myScope.timeout=30000
+                #self.myScope.chunk_size = 20*1024*1024
+                self.myScope.write('C1:WF? DAT2')
+                #print(resp)
+                #print(type(resp))
+                print('000')
+                recv = list(self.myScope.read_bytes(1))[15:]
+                print('001')
+                recv.pop()
+                recv.pop()
+                volt_value=[]
+                for data in recv:
+                    if data > 127:
+                        data = data -255
+                    else:
+                        pass
+                    volt_value.append(data)
+                time_value = []
+                '''
+                for idx in range(0,len(volt_value)):
+                    volt_value[idx] = volt_value[idx]/25*float(vdiv)-float(ofst)
+                    time_data = -(float(tdiv)*14/2)+idx*(1/sara)
+                    time_value.append(time_data)
+                    pl.figure(figsize=(7,5))
+                    pl.plot(time_value,volt_value,markersize=2,label=u"Y-T")
+                    pl.legend()
+                    pl.grid()
+                    pl.show()
+                '''
+ 
+        def get_version(self):
+                self.myScope.query('*IDN?')
+
+        def get_number_of_datapoints(self):
+                print(self.myScope.query('SANU? C1'))
+
+                
+'''
+        def waveform(self, outfile, channel):
+                self.myScope.timeout = 120000
+                sample_rate = self.myScope.query('SANU C%d?' % channel)
+
+                sample_rate = int(sample_rate[len('SANU '):-2])
+                logger.info('detected sample rate of %d' % sample_rate)
+
+                #desc = device.write('C%d: WF? DESC' % channel)
+                #logger.info(repr(device.read_raw()))
+
+                # the response to this is binary data so we need to write() and then read_raw()
+                # to avoid encode() call and relative UnicodeError
+                logger.info(self.myScope.write('C%d: WF? DAT2' % (channel,))) 
+
+                response = self.myScope.read_raw()
+
+                if not response.startswith('C%d:WF ALL' % channel):
+                    raise ValueError('error: bad waveform detected -> \'%s\'' % repr(response[:80]))
+
+                index = response.index('#9')
+                index_start_data = index + 2 + 9
+                data_size = int(response[index + 2:index_start_data])
+                # the reponse terminates with the sequence '\n\n\x00' so
+                # is a bit longer that the header + data
+                data = response[index_start_data:index_start_data + data_size]
+                logger.info('data size: %d' % data_size)
+
+                fd = wave.open(outfile, "w")
+                fd.setparams((
+                 1,               # nchannels
+                 1,               # sampwidth
+                 sample_rate,     # framerate
+                 data_size,       # nframes
+                 "NONE",          # comptype
+                 "not compresse", # compname
+                ))
+                fd.writeframes(data)
+                fd.close()
+
+                logger.info('saved wave file')
 
         def get_measurement(self, channel, parameter):
                 """
@@ -192,3 +292,4 @@ class SIGLENT(scope):
                 else:
                         logger.error('Error format, ex: set_volt_div(\'CH1\', 0.5)')
 
+'''
