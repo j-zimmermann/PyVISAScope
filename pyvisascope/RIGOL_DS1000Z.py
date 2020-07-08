@@ -79,15 +79,13 @@ class DS1000Z(scope):
                         logger.error('Error format, ex: acquire(\'RUN/STOP\')')
 
 
-        """
         def get_measurement(self, channel, parameter):
                 '''
                 possible parameters are:
-                CRM, CURSORRM, DEL, FALL, FREQ, MAXI, MEAN, MINI, NONE, NWI, PDU, PERI, PHA, PK2PK, PWI, RIS
+                Vmax, Vmin, Vpp, Vtop, Vbase, Vamp, Vavg, Vrms, Overshoot, Preshoot
                 '''
-                self.myScope.write(':MEASU:IMMED:SOU ' + channel)
-                self.myScope.write(':MEASU:IMMED:TYP ' + parameter)
-                result = self.myScope.query(':MEASU:IMMED:VAL?')
+                self.myScope.write(':MEAS:ITEM ' + parameter + ',' + channel)
+                result = self.myScope.query(':MEAS:ITEM? ' + parameter + ',' + channel)
                 return float(result)
 
         def get_measurement_series(self, channels, parameters):
@@ -99,6 +97,7 @@ class DS1000Z(scope):
                         results[channel][param] = self.get_measurement(channel, param)
             return results
 
+        """
         def MKDIR(self, DIR):
             # start always from root
             self.myScope.write('FILESYSTEM:CWD "A:\\"')
