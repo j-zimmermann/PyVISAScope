@@ -17,7 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import visa
+import pyvisa as visa
 import unicodedata
 import logging
 import sys
@@ -36,27 +36,27 @@ def get_resources():
 
 
 def convUnicodeToAscii(s):
-        return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
+    return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
 
 
 def getDeviceList():
-        tmp = list(RESOURCE_MANAGER.list_resources())
-        tmp = [convUnicodeToAscii(i) for i in tmp]
-        return tmp
+    tmp = list(RESOURCE_MANAGER.list_resources())
+    tmp = [convUnicodeToAscii(i) for i in tmp]
+    return tmp
 
 
 class scope(object):
-        def __init__(self, resource):
-                self.myScope = RESOURCE_MANAGER.open_resource(resource)
-                self.mkdir = True
-                self.counter = 0
+    def __init__(self, resource):
+        self.myScope = RESOURCE_MANAGER.open_resource(resource)
+        self.mkdir = True
+        self.counter = 0
 
-        def checkChannel(self, channel):
-                """ template for 4 channel oscilloscopes """
-                answer = False
-                if channel == 'CH1' or channel == 'CH2' or channel == 'CH3' or channel == 'CH4':
-                        answer = True
-                if answer is False:
-                        logger.error('Choose one of the four channels, e.g. CH1')
-                        return answer
-                return answer
+    def checkChannel(self, channel):
+        """ template for 4 channel oscilloscopes """
+        answer = False
+        if channel == 'CH1' or channel == 'CH2' or channel == 'CH3' or channel == 'CH4':
+            answer = True
+        if answer is False:
+            logger.error('Choose one of the four channels, e.g. CH1')
+            return answer
+        return answer

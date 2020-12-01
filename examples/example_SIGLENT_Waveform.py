@@ -1,4 +1,4 @@
-import visa
+import pyvisa as visa
 import pyvisascope
 import multitimer
 import time
