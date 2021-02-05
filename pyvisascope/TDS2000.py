@@ -129,6 +129,7 @@ class TDS2000(scope):
             self.filestr = self.DIR + '\\' + "{0:08d}".format(self.counter)
             self._save_setup()
             self._save_wave(channels)
+            self._save_image()
             self.counter += 1
 
         def _save_setup(self):
@@ -141,6 +142,10 @@ class TDS2000(scope):
                 if self.checkChannel(channel):
                     self.filestr = self.DIR + '\\' + channel + "{0:05d}".format(self.counter)
                     self.myScope.write(':SAVE:WAVEFORM ' + channel + ', "' + self.filestr + '.CSV"')
+
+        def _save_image(self):
+            logger.info('Saving image')
+            self.myScope.write(':SAVE:IMAge "' + self.filestr + '.tif"')
 
         def get_waveform(self, channels):
                 # stop acquisition
