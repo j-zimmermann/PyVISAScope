@@ -1,6 +1,7 @@
 This small script is based on a [github repo](https://github.com/lab11/pyVisa_Tek_MSO2000) by Ye-Sheng Kuo. Thanks for giving me the permission to use and share your code!
 
-Currently, this script works for a Tektronix TDS2014B.
+Currently, this script works for Tektronix TDS2014B, RIGOL DS1000Z and SDS1104X-E scopes
+and all scopes that share the same programming interface as the listed models.
 
 # Requirements for windows users
 
