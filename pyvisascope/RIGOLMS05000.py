@@ -44,7 +44,7 @@ class WaveformFormat(object):
                 logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
 
 
-class DS1000Z(scope):
+class MS05000(scope):
         def __init__(self, resource):
                 super().__init__(resource)
 
@@ -79,62 +79,37 @@ class DS1000Z(scope):
                         logger.error('Error format, ex: acquire(\'RUN/STOP\')')
 
 
-        def get_measurement(self, channel, parameter):
+        def get_measurement(self, channel, parameter, channel2=None):
                 '''
                 possible parameters are:
                 Vmax, Vmin, Vpp, Vtop, Vbase, Vamp, Vavg, Vrms, Overshoot, Preshoot, RRPHase
                 '''
-                self.myScope.write(':MEAS:ITEM ' + parameter + ',' + channel)
-                result = self.myScope.query(':MEAS:ITEM? ' + parameter + ',' + channel)
+                if parameter == "RRPHase":
+                    if channel2 is None:
+                        raise RuntimeError("For a phase measurement, you need to provide a 2nd channel!")
+                    else:
+                        self.checkChannel(channel2)
+                    self.myScope.write(':MEAS:ITEM ' + parameter + ',' + channel + ',' + channel2)
+                    result = self.myScope.query(':MEAS:ITEM? ' + parameter + ',' + channel + ',' + channel2)
+                else:
+                    self.myScope.write(':MEAS:ITEM ' + parameter + ',' + channel)
+                    result = self.myScope.query(':MEAS:ITEM? ' + parameter + ',' + channel)
                 return float(result)
 
-        def get_measurement_series(self, channels, parameters):
+        def get_measurement_series(self, channels, parameters, channel2=None):
             results = {}
             for channel in channels:
                 if self.checkChannel(channel):
                     results[channel] = {}
                     for param in parameters:
-                        results[channel][param] = self.get_measurement(channel, param)
+                        results[channel][param] = self.get_measurement(channel, param, channel2)
             return results
-
-        # implement a counter
-        def set_counter(self):
-            files = self.myScope.query(':FILESYSTEM:DIR?').replace('"', '').replace('\n', '').split(',')
-            logger.debug(files)
-            files = [i for i in files if i.endswith('.SET')]
-            files = [i.replace('.SET', '') for i in files]
-            files = list(map(int, files))
-            if len(files) > 0:
-                self.counter = max(files) + 1
-                logger.info('Start to write from index {}'.format(self.counter))
-            raise Exception('not implemented')
-        
-        def save_all(self, channels): 
-            self._save_image()
-            self.counter += 1
 
         def save_image(self, counter=0):
             logger.info('Saving image')
             self.filestr = 'D:\\' + '{0:08d}'.format(self.counter)
             self.myScope.write(':SAVE:IMAge ' + self.filestr + '.png')
             self.counter += 1
-        """
-
-        def _save_setup(self):
-            logger.info('Saving setup')
-            self.myScope.write(':SAVE:SETU "' + self.filestr + '.SET"')
-
-        def _save_wave(self, channels, mode='USB'):
-            logger.info('Saving waveform for {}'.format(channels))
-            for channel in channels:
-                if self.checkChannel(channel):
-                    self.filestr = "D:\\" + '\\' + channel + "{0:05d}".format(self.counter)
-                    self.myScope.write(':SAVE:WAVEFORM ' + channel + ', "' + self.filestr + '.CSV"')
-
-        def _save_image(self):
-            logger.info('Saving image')
-            self.myScope.write(':SAVE:IMAge "' + self.filestr + '.png"')
-        """    
 
         def get_waveform(self, channels):
                 # stop acquisition

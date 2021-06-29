@@ -13,7 +13,7 @@ logger.addHandler(log2file)
 
 def main():
         # enter here the ID of your device. On windows, VISA you can easily find it in the VISA interface.
-        Device = pyvisascope.DS1000Z('USB::0x1AB1::0x0515::MS5A230800492::INSTR')
+        Device = pyvisascope.MSO1000('USB::0x1AB1::0x0515::MS5A230800492::INSTR')
         Device.myScope.timeout = None
         # set a timer that records every minute for in total 4 times
         timer = multitimer.MultiTimer(interval=5, function=measure, kwargs={'myDevice': Device}, count=20, runonstart=True)
@@ -25,7 +25,7 @@ def measure(myDevice):
         timestr = time.strftime('%Y%m%d-%H%M%S')
         waveform = myDevice.get_waveform(['CHAN1', 'CHAN2', 'CHAN3'])
         # further measurement parameters and the needed abbreviation can be found in ds1000z_programming guide
-        measurement = myDevice.get_measurement_series(['CHAN1', 'CHAN2', 'CHAN3'], ['VPP', 'Vavg', 'FREQ', 'VRMS', 'RRPH'])
+        measurement = myDevice.get_measurement_series(['CHAN1', 'CHAN2', 'CHAN3'], ['VPP', 'Vavg', 'FREQ', 'VRMS', 'RRPH'], channel2=["CHAN2"])  # measure phase against 2nd channel
         with open(timestr + '-wave.yml', 'w') as outfile:
                 yaml.dump(waveform, outfile, default_flow_style=True)
         with open(timestr + '-measurement.yml', 'w') as outfile:
