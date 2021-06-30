@@ -44,7 +44,7 @@ class WaveformFormat(object):
                 logger.debug('Set Time Div to {}'.format(self.dictionary['Time Div']))
 
 
-class MS05000(scope):
+class MSO5000(scope):
         def __init__(self, resource):
                 super().__init__(resource)
 
