@@ -23,11 +23,12 @@ import logging
 
 logger = logging.getLogger('pyvisa')
 
+
 class WaveformFormat(object):
         def __init__(self, preambleString):
                 preambleString = preambleString.replace('\n', '')
                 tmp = preambleString.split(',')
-                if len(tmp) == 5: # TODO
+                if len(tmp) == 5:  # TODO
                         self.active = False
                         return
                 self.active = True
@@ -78,7 +79,6 @@ class MSO5000(scope):
                 else:
                         logger.error('Error format, ex: acquire(\'RUN/STOP\')')
 
-
         def get_measurement(self, channel, parameter, channel2=None):
                 '''
                 possible parameters are:
@@ -111,9 +111,10 @@ class MSO5000(scope):
             self.myScope.write(':SAVE:IMAge ' + self.filestr + '.png')
             self.counter += 1
 
-        def get_waveform(self, channels):
+        def get_waveform(self, channels, autofreeze=True):
                 # stop acquisition
-                self.acquire('OFF')
+                if autofreeze:
+                    self.acquire('OFF')
                 waveform = {}
                 for channel in channels:
                         if self.checkChannel(channel):
@@ -135,36 +136,6 @@ class MSO5000(scope):
                         else:
                                 logger.error('Error format, ex: get_waveform(\'CH1\')')
                 # restart acquisition
-                self.acquire('ON')
+                if autofreeze:
+                    self.acquire('ON')
                 return waveform
-
-        """
-        def get_channel_position(self, channel):
-                if self.checkChannel(channel):
-                        self.set_channel(channel)
-                        preamble = WaveformFormat(self.myScope.query(':WFMP?'))
-                        pos = float(self.myScope.query(':' + channel + ':POS?'))
-                        return preamble.dictionary['Voltage Div'] * pos
-                else:
-                        logger.error('Error format, ex: get_channel_position(\'CH1\')')
-
-        def set_channel_position(self, channel, v):
-                if self.checkChannel(channel):
-                        self.set_channel(channel)
-                        preamble = WaveformFormat(self.myScope.query(':WFMP?'))
-                        self.myScope.write(':' + channel + ':POSition ' + str(float(v) / preamble.dictionary['Voltage Div']))
-                else:
-                        logger.error('Error format, ex: set_channel_position(\'CH1\', 0)')
-
-        def get_volt_div(self, channel):
-                if self.checkChannel(channel):
-                        return float(convUnicodeToAscii(self.myScope.query(channel + ':SCA?')).rstrip())
-                else:
-                        logger.error('Error format, ex: get_volt_div(\'CH1\')')
-
-        def set_volt_div(self, channel, v_div):
-                if self.checkChannel(channel) and v_div in {0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50}:
-                        self.myScope.write(channel + ':SCA ' + str(v_div))
-                else:
-                        logger.error('Error format, ex: set_volt_div(\'CH1\', 0.5)')
-        """
