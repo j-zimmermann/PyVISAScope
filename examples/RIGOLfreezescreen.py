@@ -4,6 +4,7 @@ import multitimer
 import time
 import yaml
 import logging
+from time import sleep
 
 visa.log_to_screen('INFO')
 logger = logging.getLogger('pyvisa')
@@ -16,13 +17,15 @@ def main():
         Device = pyvisascope.MSO5000('USB::0x1AB1::0x0515::MS5A230800492::INSTR')
         Device.myScope.timeout = None
         # set a timer that records every minute for in total 4 times
-        timer = multitimer.MultiTimer(interval=20, function=measure, kwargs={'myDevice': Device}, count=6, runonstart=True)
+        timer = multitimer.MultiTimer(interval=20, function=measure, kwargs={'myDevice': Device}, count=3, runonstart=True)
         timer.start()
 
 
 def measure(myDevice):
         logger.info('Executing at {}'.format(time.ctime()))
         timestr = time.strftime('%Y%m%d-%H%M%S')
+        # sleep 3 seconds
+        sleep(3)
         # freeze screen
         myDevice.acquire("OFF")
         waveform = myDevice.get_waveform(['CHAN1', 'CHAN2', 'CHAN3'], autofreeze=False)
