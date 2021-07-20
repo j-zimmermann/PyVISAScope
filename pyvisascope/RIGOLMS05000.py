@@ -73,9 +73,11 @@ class MSO5000(scope):
 
         def acquire(self, start):
                 if start == 'ON':
-                        self.myScope.write(':RUN:')
+                        self.myScope.write(':RUN')
+                        logger.info('Start acquisition')
                 elif start == 'OFF':
-                        self.myScope.write(':STOP:')
+                        self.myScope.write(':STOP')
+                        logger.info('Stop acquisition')
                 else:
                         logger.error('Error format, ex: acquire(\'RUN/STOP\')')
 
