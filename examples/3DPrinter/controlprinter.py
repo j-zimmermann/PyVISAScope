@@ -145,7 +145,7 @@ def main(grid):
         ser.flushInput()
         ser.flushOutput()
 
-        input("Move along grid. Make sure chamber is in position!")
+        input("Move along grid. Make sure chamber is in position!\n Hit enter when ready!")
         # move along grid
         for i, g in enumerate(grid):
             move_printer(ser, g[0], g[1], g[2])
