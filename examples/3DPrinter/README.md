@@ -30,6 +30,8 @@ The main idea is:
 In case of any error that makes the printer stop at a certain position,
 you can run this script to move the printer head up such that you can
 remove the measurement sample.
+* `getheight.py`:
+Move the needle down step-by-step to get an estimate of the fill level in the well.
 
 *All files have to be copied to one directory and executed there!*
 
