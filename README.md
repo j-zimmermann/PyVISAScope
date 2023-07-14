@@ -10,7 +10,7 @@ and all scopes that share the same programming interface as the listed models.
 
 # Requirements for linux users
 
-* [pyVISA](https://pyvisa.readthedocs.io/en/master/)
+* [pyVISA](https://pyvisa.readthedocs.io/en/latest/)
 * [pyVISA-py](https://pyvisa-py.readthedocs.io/en/latest/)
 * [pyUSB](http://pyusb.github.io/pyusb/)
 
