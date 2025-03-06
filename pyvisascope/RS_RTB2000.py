@@ -184,8 +184,8 @@ class RTB2004(scope):
 
         """
         
-        def set_recordlength(self, recordlength)
-        	'''The possible values for recordlength are 1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6, 2e6, 5e6, 1e7, 2e7, see RTB2000 manual.'''
+	def set_recordlength(self, recordlength):
+		'''The possible values for recordlength are 1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6, 2e6, 5e6, 1e7, 2e7, see RTB2000 manual.'''
          	self.myScope.write('ACQuire:POINts ' + recordlength)
 		self.myScope.write('ACQuire:SRATE ' + recordlength)
         	self.myScope.write('*OPC')
@@ -246,10 +246,7 @@ class RTB2004(scope):
                                 time_value = []
                                 t0 = self.myScope.query(channel_star + ':DATA:XORigin?')
                                 time_increment = self.myScope.query(channel_star + ':DATA:XINCrement?')
-                                print("Time Increment ", time_increment)
                                 data_points= self.myScope.query(channel_star + ':DATA:POINts?')
-                                print(type(voltage_value))
-                                print('No.of data points: '+data_points)
                                 voltage_value_list = list(map(float, voltage_value.split(',')))
                                 for idx in range(0,len(voltage_value_list)):
                                                 time_data = float(t0) + idx*float(time_increment)
