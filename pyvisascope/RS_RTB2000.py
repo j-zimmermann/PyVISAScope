@@ -183,12 +183,16 @@ class RTB2004(scope):
 
 
         """
+        
+        def set_recordlength(self, recordlength)
+        	'''The possible values for recordlength are 1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6, 2e6, 5e6, 1e7, 2e7, see RTB2000 manual.'''
+         	self.myScope.write('ACQuire:POINts ' + recordlength)
+		self.myScope.write('ACQuire:SRATE ' + recordlength)
+        	self.myScope.write('*OPC')
 
         def get_waveform(self, channels):
-                self.myScope.write('ACQuire:POINts 10000')
                 self.myScope.write('*OPC')
-                # stop acquisition
-                self.acquire('OFF')
+                self.acquire('OFF')	# stop acquisition
                 waveform = {}
                 for channel in channels:
                         if self.checkChannel(channel):
@@ -201,12 +205,11 @@ class RTB2004(scope):
                                         channel_star = 'CHAN3'
                                 if channel == 'CH4':
                                         channel_star = 'CHAN4'
-                                preamble = self.myScope.query( channel_star + ':DATA:HEAD?' )
                                 self.myScope.write('FORM ASC')
                                 voltage_value = self.myScope.query(channel_star + ':DATA?')
                                 time_value = []
                                 t0 = self.myScope.query(channel_star + ':DATA:XORigin?')
-                                time_increment = self.myScope.query('CHANnel2:DATA:XINCrement?')
+                                time_increment = self.myScope.query(channel_star + ':DATA:XINCrement?')
                                 voltage_value_list = list(map(float, voltage_value.split(',')))
                                 for idx in range(0,len(voltage_value_list)):
                                         time_data = float(t0) + idx*float(time_increment)
@@ -214,27 +217,51 @@ class RTB2004(scope):
                                 waveform['time'] = time_value
                                 waveform[channel] = voltage_value_list
 
-                                '''
-                                if preamble.active is False:
-                                        logger.warning('Channel {} is not active'.format(channel))
-                                        continue
-                                # set reading mode to normal
-                                self.myScope.write( ':WAV:MODE NORM' )
-                                # set format to binary
-                                self.myScope.write( ':FORM:DATA <REAL>' )
-                                wave = self.myScope.query_binary_values( 'FORM:DATA <REAL>', datatype= 'B' )
-                                voltage = [(i - preamble.dictionary['Voltage Offset']) * preamble.dictionary['Voltage multiplier']
-                                           for i in wave]
-                                if 'time' not in waveform:
-                                        waveform['time'] = [i * preamble.dictionary['Time multiplier'] for i in range(len(voltage))]
-                                waveform[channel] = voltage
-                                '''
                         else:
                                 logger.error('Error format, ex: get_waveform(\'CH1\')')
                                 
-                # restart acquisition
-                self.acquire('ON')
-                self.myScope.write('ACQuire:POINts:AUTomatic ON')
+                self.acquire('ON')                 # restart acquisition
+                self.myScope.write('*OPC')
+                return waveform
+                
+	def get_waveform_downsampled(self, channels, factor):
+		'''By defining a factor only every nth value will be saved and thus decrease the memory size of the saved waveform. Be aware that information will be lost.'''
+                self.myScope.write('*OPC')          
+                self.acquire('OFF') # stop acquisition
+                self.myScope.write('*OPC')
+                waveform = {}
+                for channel in channels:
+                        if self.checkChannel(channel):
+                                self.set_channel(channel)
+                                if channel == 'CH1':
+                                        channel_star = 'CHAN1'
+                                if channel == 'CH2':
+                                        channel_star = 'CHAN2'
+                                if channel == 'CH3':
+                                        channel_star = 'CHAN3'
+                                if channel == 'CH4':
+                                        channel_star = 'CHAN4'
+                                self.myScope.write('FORM ASC')
+                                voltage_value = self.myScope.query(channel_star + ':DATA?')
+                                time_value = []
+                                t0 = self.myScope.query(channel_star + ':DATA:XORigin?')
+                                time_increment = self.myScope.query(channel_star + ':DATA:XINCrement?')
+                                print("Time Increment ", time_increment)
+                                data_points= self.myScope.query(channel_star + ':DATA:POINts?')
+                                print(type(voltage_value))
+                                print('No.of data points: '+data_points)
+                                voltage_value_list = list(map(float, voltage_value.split(',')))
+                                for idx in range(0,len(voltage_value_list)):
+                                                time_data = float(t0) + idx*float(time_increment)
+                                                time_value.append(time_data)
+                                waveform['time'] = time_value[::factor] # selecting only every nth value, workls better than scipy.resample for pulses. scipy.resample introduvces ringing in the downsampled waveform.
+                                waveform[channel] = voltage_value_list[::factor]
+
+                        else:
+                                logger.error('Error format, ex: get_waveform(\'CH1\')')
+                                
+                self.myScope.write('*OPC')                
+                self.acquire('ON') # restart acquisition
                 self.myScope.write('*OPC')
                 return waveform
         
